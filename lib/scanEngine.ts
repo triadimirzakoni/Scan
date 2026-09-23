@@ -30,7 +30,7 @@ export interface ProcessCallbacks {
  * Menerapkan efek "hasil scan" ke satu canvas: noise sensor, penggelapan
  * ringan, tint kehangatan kertas, opsi grayscale/B&W, dan vignette tepi.
  */
-function applyScanEffect(
+export function applyScanEffect(
   canvas: HTMLCanvasElement,
   settings: ScanSettings
 ): void {
@@ -120,7 +120,7 @@ function applyScanEffect(
  * scanner asli (dokumen digital biasanya terlalu tajam untuk terlihat
  * seperti hasil scan fisik).
  */
-function applyLensBlur(canvas: HTMLCanvasElement, blurPx: number): void {
+export function applyLensBlur(canvas: HTMLCanvasElement, blurPx: number): void {
   const temp = document.createElement("canvas");
   temp.width = canvas.width;
   temp.height = canvas.height;
@@ -166,6 +166,85 @@ function drawWithSkew(
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 
   return out;
+}
+
+/**
+ * Versi skew yang deterministik (bukan acak) khusus untuk pratinjau
+ * real-time, supaya gambar tidak "meloncat" tiap kali user menggeser
+ * slider yang tidak berkaitan dengan kemiringan.
+ */
+function applyFixedSkew(
+  source: HTMLCanvasElement,
+  skewDeg: number
+): HTMLCanvasElement {
+  if (skewDeg <= 0) return source;
+
+  const angle = skewDeg * (Math.PI / 180);
+  const out = document.createElement("canvas");
+  out.width = source.width;
+  out.height = source.height;
+  const ctx = out.getContext("2d");
+  if (!ctx) return source;
+
+  ctx.fillStyle = "#f5f2e9";
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.translate(out.width / 2, out.height / 2);
+  ctx.rotate(angle);
+  ctx.drawImage(source, -source.width / 2, -source.height / 2);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  return out;
+}
+
+/**
+ * Merender HANYA halaman pertama sebuah PDF ke canvas mentah (belum diberi
+ * efek apa pun), dibatasi lebar maksimum supaya cepat dipakai untuk
+ * pratinjau real-time. Tidak menyentuh sisa halaman sama sekali.
+ */
+export async function renderFirstPageCanvas(
+  file: File,
+  maxWidth = 640
+): Promise<HTMLCanvasElement> {
+  const pdfjsLib = await getPdfjs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(1);
+
+  const baseViewport = page.getViewport({ scale: 1.0 });
+  const scale = Math.min(2, maxWidth / baseViewport.width);
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("Canvas 2D context tidak tersedia");
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return canvas;
+}
+
+/**
+ * Menjalankan pipeline efek yang sama seperti hasil akhir (blur → noise/
+ * kontras/warna → skew), tapi terhadap SALINAN canvas dasar, dan dengan
+ * skew deterministik. Dipakai untuk pratinjau real-time saat slider
+ * digeser, tanpa memproses ulang seluruh PDF.
+ */
+export function applyPreviewPipeline(
+  baseCanvas: HTMLCanvasElement,
+  settings: ScanSettings
+): HTMLCanvasElement {
+  const working = document.createElement("canvas");
+  working.width = baseCanvas.width;
+  working.height = baseCanvas.height;
+  const ctx = working.getContext("2d");
+  ctx?.drawImage(baseCanvas, 0, 0);
+
+  if (settings.blur > 0) {
+    applyLensBlur(working, settings.blur);
+  }
+  applyScanEffect(working, settings);
+  return applyFixedSkew(working, settings.skewDeg);
 }
 
 export interface ScanResult {

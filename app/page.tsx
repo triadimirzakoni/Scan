@@ -10,8 +10,9 @@ import ActionBar from "@/components/ActionBar";
 import Footer from "@/components/Footer";
 import Mascot from "@/components/Mascot";
 import PreviewModal from "@/components/PreviewModal";
+import LivePreview from "@/components/LivePreview";
 import { PRESETS, type PresetName, type QueuedFile, type ScanSettings } from "@/lib/types";
-import { scanPdfFile } from "@/lib/scanEngine";
+import { scanPdfFile, renderFirstPageCanvas } from "@/lib/scanEngine";
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -40,17 +41,40 @@ export default function Home() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
-  const handleFilesAdded = useCallback((newFiles: File[]) => {
-    setFiles((prev) => [
-      ...prev,
-      ...newFiles.map((file) => ({
-        id: makeId(),
-        file,
-        status: "menunggu" as const,
-        progress: 0,
-      })),
-    ]);
-  }, []);
+  const [liveBaseCanvas, setLiveBaseCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [liveBaseName, setLiveBaseName] = useState("");
+  const [liveBaseLoading, setLiveBaseLoading] = useState(false);
+
+  const handleFilesAdded = useCallback(
+    (newFiles: File[]) => {
+      setFiles((prev) => {
+        const wasEmpty = prev.length === 0;
+        if (wasEmpty && newFiles[0]) {
+          setLiveBaseLoading(true);
+          renderFirstPageCanvas(newFiles[0])
+            .then((canvas) => {
+              setLiveBaseCanvas(canvas);
+              setLiveBaseName(newFiles[0].name);
+            })
+            .catch(() => {
+              // gagal render pratinjau (mis. PDF terkunci password) tidak
+              // masalah, cukup diamkan, proses penuh nanti tetap melapor error
+            })
+            .finally(() => setLiveBaseLoading(false));
+        }
+        return [
+          ...prev,
+          ...newFiles.map((file) => ({
+            id: makeId(),
+            file,
+            status: "menunggu" as const,
+            progress: 0,
+          })),
+        ];
+      });
+    },
+    []
+  );
 
   const handleSettingsChange = (next: ScanSettings) => {
     setSettings(next);
@@ -73,6 +97,8 @@ export default function Home() {
     }
     setPreviewId(null);
     setFiles([]);
+    setLiveBaseCanvas(null);
+    setLiveBaseName("");
   };
 
   const handleDownload = (id: string) => {
@@ -216,6 +242,12 @@ export default function Home() {
         </section>
 
         <section className="flex flex-col gap-4">
+          <LivePreview
+            baseCanvas={liveBaseCanvas}
+            settings={settings}
+            fileName={liveBaseName}
+            isLoading={liveBaseLoading}
+          />
           <SettingsPanel
             settings={settings}
             onChange={handleSettingsChange}

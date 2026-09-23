@@ -14,6 +14,7 @@ const PRESET_LABELS: Record<PresetName, { title: string; desc: string }> = {
   rapi: { title: "Rapi", desc: "Bersih, noise minim" },
   klasik: { title: "Klasik", desc: "Kertas lama, ada kemiringan" },
   hemat: { title: "Hemat Ukuran", desc: "File sekecil mungkin" },
+  superRealistis: { title: "Super Realistis", desc: "Plek ketiplek kayak scan asli" },
 };
 
 function Slider({
@@ -72,7 +73,7 @@ export default function SettingsPanel({
     <div className="flex flex-col gap-5 rounded-xl border border-ink-line bg-ink-panel/60 p-5">
       <div>
         <h2 className="font-display text-base text-paper-bright">Pengaturan efek</h2>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           {(Object.keys(PRESETS) as PresetName[]).map((key) => (
             <button
               key={key}
@@ -113,6 +114,14 @@ export default function SettingsPanel({
           disabled={disabled}
         />
         <Slider
+          label="Kontras"
+          value={settings.contrast}
+          min={-50}
+          max={50}
+          onChange={(v) => update({ contrast: v })}
+          disabled={disabled}
+        />
+        <Slider
           label="Kehangatan kertas"
           value={settings.warmth}
           min={0}
@@ -128,6 +137,16 @@ export default function SettingsPanel({
           step={0.1}
           unit="°"
           onChange={(v) => update({ skewDeg: v })}
+          disabled={disabled}
+        />
+        <Slider
+          label="Blur lensa"
+          value={settings.blur}
+          min={0}
+          max={2}
+          step={0.1}
+          unit="px"
+          onChange={(v) => update({ blur: v })}
           disabled={disabled}
         />
         <Slider

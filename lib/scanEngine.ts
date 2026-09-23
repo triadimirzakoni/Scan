@@ -46,6 +46,11 @@ function applyScanEffect(
   const warmth = settings.warmth;
   const mode = settings.colorMode;
 
+  // formula kontras standar: memetakan nilai piksel di sekitar titik
+  // tengah (128) supaya area terang/gelap makin terpisah jelas
+  const contrastFactor =
+    (259 * (settings.contrast + 255)) / (255 * (259 - settings.contrast));
+
   for (let i = 0; i < data.length; i += 4) {
     let r = data[i];
     let g = data[i + 1];
@@ -79,6 +84,12 @@ function applyScanEffect(
       r -= darken;
       g -= darken;
       b -= darken;
+
+      if (settings.contrast !== 0) {
+        r = contrastFactor * (r - 128) + 128;
+        g = contrastFactor * (g - 128) + 128;
+        b = contrastFactor * (b - 128) + 128;
+      }
     }
 
     data[i] = clamp(r);
@@ -102,6 +113,26 @@ function applyScanEffect(
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
   }
+}
+
+/**
+ * Memberi blur sangat halus untuk meniru ketidaktajaman optik lensa/sensor
+ * scanner asli (dokumen digital biasanya terlalu tajam untuk terlihat
+ * seperti hasil scan fisik).
+ */
+function applyLensBlur(canvas: HTMLCanvasElement, blurPx: number): void {
+  const temp = document.createElement("canvas");
+  temp.width = canvas.width;
+  temp.height = canvas.height;
+  const tempCtx = temp.getContext("2d");
+  const ctx = canvas.getContext("2d");
+  if (!tempCtx || !ctx) return;
+
+  tempCtx.drawImage(canvas, 0, 0);
+  ctx.filter = `blur(${blurPx}px)`;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(temp, 0, 0);
+  ctx.filter = "none";
 }
 
 function clamp(v: number): number {
@@ -179,6 +210,10 @@ export async function scanPdfFile(
     if (!ctx) throw new Error("Canvas 2D context tidak tersedia");
 
     await page.render({ canvasContext: ctx, viewport }).promise;
+
+    if (settings.blur > 0) {
+      applyLensBlur(canvas, settings.blur);
+    }
 
     applyScanEffect(canvas, settings);
     const finalCanvas = drawWithSkew(canvas, settings.skewDeg);

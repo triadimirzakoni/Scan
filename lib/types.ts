@@ -7,6 +7,10 @@ export interface ScanSettings {
   noise: number;
   /** 0-20, seberapa gelap dibanding asli */
   darken: number;
+  /** -50 sampai 50, kontras antara area terang & gelap */
+  contrast: number;
+  /** 0-2, blur lensa halus ala hasil optik scanner */
+  blur: number;
   /** 0-40, tint kekuningan ala kertas lama */
   warmth: number;
   /** derajat kemiringan acak maksimum per halaman, 0 = lurus */
@@ -21,12 +25,14 @@ export interface ScanSettings {
   pageFit: PageFit;
 }
 
-export type PresetName = "rapi" | "klasik" | "hemat";
+export type PresetName = "rapi" | "klasik" | "hemat" | "superRealistis";
 
 export const PRESETS: Record<PresetName, ScanSettings> = {
   rapi: {
     noise: 6,
     darken: 4,
+    contrast: 8,
+    blur: 0,
     warmth: 6,
     skewDeg: 0.3,
     vignette: false,
@@ -38,6 +44,8 @@ export const PRESETS: Record<PresetName, ScanSettings> = {
   klasik: {
     noise: 16,
     darken: 10,
+    contrast: 14,
+    blur: 0.3,
     warmth: 22,
     skewDeg: 1.1,
     vignette: true,
@@ -49,12 +57,27 @@ export const PRESETS: Record<PresetName, ScanSettings> = {
   hemat: {
     noise: 8,
     darken: 6,
+    contrast: 10,
+    blur: 0.2,
     warmth: 4,
     skewDeg: 0,
     vignette: false,
     colorMode: "grayscale",
     renderScale: 1.5,
     jpegQuality: 0.6,
+    pageFit: "original",
+  },
+  superRealistis: {
+    noise: 13,
+    darken: 8,
+    contrast: 22,
+    blur: 0.5,
+    warmth: 14,
+    skewDeg: 0.8,
+    vignette: true,
+    colorMode: "grayscale",
+    renderScale: 2.0,
+    jpegQuality: 0.72,
     pageFit: "original",
   },
 };

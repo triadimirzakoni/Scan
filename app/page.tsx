@@ -17,7 +17,7 @@ function makeId() {
 }
 
 function statusMessage(files: QueuedFile[], isProcessing: boolean): string {
-  if (files.length === 0) return "Up PDF nya mas/mba, biar ku scannin🙏";
+  if (files.length === 0) return "Taruh PDF-nya di sini, biar aku yang bereskan~";
   if (isProcessing) {
     const current = files.find((f) => f.status === "memproses");
     if (current) return `Lagi ngescan "${current.file.name}"... sabar ya!`;

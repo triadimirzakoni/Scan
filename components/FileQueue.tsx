@@ -6,6 +6,7 @@ interface FileQueueProps {
   files: QueuedFile[];
   onRemove: (id: string) => void;
   onDownload: (id: string) => void;
+  onPreview: (id: string) => void;
 }
 
 function formatSize(bytes: number): string {
@@ -30,7 +31,7 @@ const STATUS_COLOR: Record<QueuedFile["status"], string> = {
   dibatalkan: "text-amber",
 };
 
-export default function FileQueue({ files, onRemove, onDownload }: FileQueueProps) {
+export default function FileQueue({ files, onRemove, onDownload, onPreview }: FileQueueProps) {
   if (files.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-ink-line px-4 py-6 text-center text-sm text-paper-dim">
@@ -64,12 +65,20 @@ export default function FileQueue({ files, onRemove, onDownload }: FileQueueProp
 
             <div className="flex shrink-0 items-center gap-2">
               {qf.status === "selesai" && (
-                <button
-                  onClick={() => onDownload(qf.id)}
-                  className="rounded-md bg-scan px-3 py-1.5 text-xs font-medium text-ink hover:bg-scan/90"
-                >
-                  Unduh
-                </button>
+                <>
+                  <button
+                    onClick={() => onPreview(qf.id)}
+                    className="rounded-md border border-scan px-3 py-1.5 text-xs font-medium text-scan hover:bg-scan/10"
+                  >
+                    Pratinjau
+                  </button>
+                  <button
+                    onClick={() => onDownload(qf.id)}
+                    className="rounded-md bg-scan px-3 py-1.5 text-xs font-medium text-ink hover:bg-scan/90"
+                  >
+                    Unduh
+                  </button>
+                </>
               )}
               <button
                 onClick={() => onRemove(qf.id)}

@@ -98,5 +98,6 @@ export interface QueuedFile {
   totalPages?: number;
   resultBlob?: Blob;
   resultName?: string;
+  previewUrl?: string;
   errorMessage?: string;
 }

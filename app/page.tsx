@@ -9,6 +9,7 @@ import SettingsPanel from "@/components/SettingsPanel";
 import ActionBar from "@/components/ActionBar";
 import Footer from "@/components/Footer";
 import Mascot from "@/components/Mascot";
+import PreviewModal from "@/components/PreviewModal";
 import { PRESETS, type PresetName, type QueuedFile, type ScanSettings } from "@/lib/types";
 import { scanPdfFile } from "@/lib/scanEngine";
 
@@ -36,6 +37,8 @@ export default function Home() {
   const [activePreset, setActivePreset] = useState<PresetName | "kustom">("rapi");
   const [isProcessing, setIsProcessing] = useState(false);
   const cancelRef = useRef(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const handleFilesAdded = useCallback((newFiles: File[]) => {
     setFiles((prev) => [
@@ -64,6 +67,11 @@ export default function Home() {
   };
 
   const handleClearAll = () => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setPreviewId(null);
     setFiles([]);
   };
 
@@ -76,6 +84,22 @@ export default function Home() {
     a.download = target.resultName ?? `scan_${target.file.name}`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handlePreview = (id: string) => {
+    const target = files.find((f) => f.id === id);
+    if (!target?.resultBlob) return;
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = URL.createObjectURL(target.resultBlob);
+    setPreviewId(id);
+  };
+
+  const handleClosePreview = () => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setPreviewId(null);
   };
 
   const handleDownloadAll = async () => {
@@ -188,7 +212,7 @@ export default function Home() {
       <div className="mx-auto grid max-w-5xl gap-6 px-6 py-10 md:grid-cols-[1.3fr_1fr]">
         <section className="flex flex-col gap-4">
           <UploadZone onFilesAdded={handleFilesAdded} />
-          <FileQueue files={files} onRemove={handleRemove} onDownload={handleDownload} />
+          <FileQueue files={files} onRemove={handleRemove} onDownload={handleDownload} onPreview={handlePreview} />
         </section>
 
         <section className="flex flex-col gap-4">
@@ -219,6 +243,17 @@ export default function Home() {
       </div>
 
       <Footer />
+
+      {previewId && previewUrlRef.current && (
+        <PreviewModal
+          fileName={files.find((f) => f.id === previewId)?.resultName ?? "hasil.pdf"}
+          previewUrl={previewUrlRef.current}
+          onClose={handleClosePreview}
+          onDownload={() => {
+            handleDownload(previewId);
+          }}
+        />
+      )}
     </main>
   );
 }

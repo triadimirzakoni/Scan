@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   title: "Tolong Scannin Di! — Digitalisasi dokumen tanpa print & scan",
   description:
     "Alat internal untuk mengubah dokumen digital jadi tampilan hasil scan, langsung di browser. Tanpa print, tanpa mesin scan, tanpa file terkirim ke server.",
+  icons: {
+    icon: "https://files.catbox.moe/knz8i6.png",
+  },
   robots: {
     index: false,
     follow: false,

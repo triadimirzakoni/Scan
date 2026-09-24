@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ScanSettings } from "@/lib/types";
 import { applyPreviewPipeline } from "@/lib/scanEngine";
 
@@ -19,6 +19,7 @@ export default function LivePreview({
 }: LivePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (!baseCanvas || !canvasRef.current) return;
@@ -47,12 +48,26 @@ export default function LivePreview({
         <h2 className="font-display text-base text-paper-bright">
           Pratinjau real-time
         </h2>
-        <span className="font-mono text-[10px] uppercase tracking-wide text-scan">
-          halaman 1
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-wide text-scan">
+            halaman 1
+          </span>
+          {baseCanvas && (
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              className="rounded-md border border-ink-line px-2 py-0.5 text-[11px] text-paper-dim hover:border-scan/60 hover:text-paper-bright"
+            >
+              {collapsed ? "Gedein ⌄" : "Kecilin ⌃"}
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex min-h-[220px] items-center justify-center overflow-hidden rounded-lg bg-ink">
+      <div
+        className={`flex items-center justify-center overflow-hidden rounded-lg bg-ink transition-[max-height] duration-200 ${
+          collapsed ? "max-h-[64px]" : "min-h-[180px] max-h-[34vh]"
+        }`}
+      >
         {!baseCanvas && (
           <p className="px-6 py-10 text-center text-sm text-paper-dim">
             {isLoading
@@ -62,11 +77,13 @@ export default function LivePreview({
         )}
         <canvas
           ref={canvasRef}
-          className={`max-h-[70vh] w-full object-contain ${baseCanvas ? "" : "hidden"}`}
+          className={`w-full object-contain ${collapsed ? "h-16 w-auto" : "max-h-[34vh]"} ${
+            baseCanvas ? "" : "hidden"
+          }`}
         />
       </div>
 
-      {baseCanvas && (
+      {baseCanvas && !collapsed && (
         <p className="truncate text-xs text-paper-dim">
           Dari halaman 1 file &quot;{fileName}&quot; · geser slider di bawah,
           langsung keliatan hasilnya di sini. Kemiringan tiap halaman asli

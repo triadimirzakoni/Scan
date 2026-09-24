@@ -20,6 +20,9 @@ export default function Header() {
           <span className="font-display text-lg font-medium tracking-tight text-paper-bright">
             Tolong Scannin Di!
           </span>
+          <span className="hidden rounded-full border border-ink-line px-2 py-0.5 font-mono text-[10px] text-paper-dim sm:inline">
+            by Adi
+          </span>
         </div>
         <span className="hidden font-mono text-xs text-paper-dim sm:inline">
           internal use only

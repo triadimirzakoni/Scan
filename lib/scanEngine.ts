@@ -207,42 +207,29 @@ function paintPageShadow(
   ctx.restore();
 }
 
-function drawWithSkew(
-  source: HTMLCanvasElement,
-  skewDeg: number
-): HTMLCanvasElement {
-  if (skewDeg <= 0) return source;
-
-  const angle = (Math.random() * 2 - 1) * skewDeg * (Math.PI / 180);
-  const out = document.createElement("canvas");
-  out.width = source.width;
-  out.height = source.height;
-  const ctx = out.getContext("2d");
-  if (!ctx) return source;
-
-  paintScannerBed(ctx, out.width, out.height);
-  paintPageShadow(ctx, out.width / 2, out.height / 2, angle, source.width, source.height);
-
-  ctx.translate(out.width / 2, out.height / 2);
-  ctx.rotate(angle);
-  ctx.drawImage(source, -source.width / 2, -source.height / 2);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-  return out;
-}
-
 /**
- * Versi skew yang deterministik (bukan acak) khusus untuk pratinjau
- * real-time, supaya gambar tidak "meloncat" tiap kali user menggeser
- * slider yang tidak berkaitan dengan kemiringan.
+ * Menyusun halaman di atas "alas scanner": menambahkan margin ekstra di
+ * satu sisi (kalau diaktifkan) dan/atau memiringkan halaman (kalau
+ * skewDeg > 0), lengkap dengan bayangan lembut mengikuti posisi akhirnya.
+ * `angleOverride` dipakai pratinjau real-time supaya sudutnya tidak acak
+ * tiap kali slider lain digeser.
  */
-function applyFixedSkew(
+function composePageBed(
   source: HTMLCanvasElement,
-  skewDeg: number
+  settings: ScanSettings,
+  angleOverride?: number
 ): HTMLCanvasElement {
-  if (skewDeg <= 0) return source;
+  const hasSkew = settings.skewDeg > 0;
+  const hasMargin = settings.marginSide !== "none" && settings.marginSize > 0;
+  if (!hasSkew && !hasMargin) return source;
 
-  const angle = skewDeg * (Math.PI / 180);
+  const angle =
+    angleOverride !== undefined
+      ? angleOverride
+      : hasSkew
+      ? (Math.random() * 2 - 1) * settings.skewDeg * (Math.PI / 180)
+      : 0;
+
   const out = document.createElement("canvas");
   out.width = source.width;
   out.height = source.height;
@@ -250,12 +237,30 @@ function applyFixedSkew(
   if (!ctx) return source;
 
   paintScannerBed(ctx, out.width, out.height);
-  paintPageShadow(ctx, out.width / 2, out.height / 2, angle, source.width, source.height);
 
-  ctx.translate(out.width / 2, out.height / 2);
+  // geser posisi dokumen supaya satu sisi menyisakan ruang kosong ala
+  // dokumen yang diletakkan agak menepi di kaca scanner
+  let dx = 0;
+  let dy = 0;
+  if (hasMargin) {
+    const insetX = (settings.marginSize / 100) * source.width;
+    const insetY = (settings.marginSize / 100) * source.height;
+    if (settings.marginSide === "left") dx = insetX;
+    if (settings.marginSide === "right") dx = -insetX;
+    if (settings.marginSide === "top") dy = insetY;
+    if (settings.marginSide === "bottom") dy = -insetY;
+  }
+
+  const centerX = out.width / 2 + dx;
+  const centerY = out.height / 2 + dy;
+
+  paintPageShadow(ctx, centerX, centerY, angle, source.width, source.height);
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
   ctx.rotate(angle);
   ctx.drawImage(source, -source.width / 2, -source.height / 2);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.restore();
 
   return out;
 }
@@ -308,7 +313,7 @@ export function applyPreviewPipeline(
     applyLensBlur(working, settings.blur);
   }
   applyScanEffect(working, settings);
-  return applyFixedSkew(working, settings.skewDeg);
+  return composePageBed(working, settings, settings.skewDeg * (Math.PI / 180));
 }
 
 export interface ScanResult {
@@ -359,7 +364,7 @@ export async function scanPdfFile(
     }
 
     applyScanEffect(canvas, settings);
-    const finalCanvas = drawWithSkew(canvas, settings.skewDeg);
+    const finalCanvas = composePageBed(canvas, settings);
 
     const imgData = finalCanvas.toDataURL(
       "image/jpeg",

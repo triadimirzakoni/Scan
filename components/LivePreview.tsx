@@ -43,7 +43,7 @@ export default function LivePreview({
   }, [baseCanvas, settings]);
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-ink-line bg-ink-panel/60 p-4">
+    <div className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-line bg-ink-panel/60 p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base text-paper-bright">
           Pratinjau real-time
@@ -64,8 +64,8 @@ export default function LivePreview({
       </div>
 
       <div
-        className={`flex items-center justify-center overflow-hidden rounded-lg bg-ink transition-all duration-200 ${
-          collapsed ? "h-16" : "min-h-[200px]"
+        className={`flex min-w-0 items-center justify-center overflow-hidden rounded-lg bg-ink transition-all duration-200 ${
+          collapsed ? "h-16" : "min-h-[220px]"
         }`}
       >
         {!baseCanvas && (
@@ -77,8 +77,8 @@ export default function LivePreview({
         )}
         <canvas
           ref={canvasRef}
-          className={`max-w-full object-contain ${
-            collapsed ? "h-16 w-auto" : "h-auto w-auto max-h-[46vh]"
+          className={`block max-w-full object-contain ${
+            collapsed ? "h-16 w-auto" : "h-auto w-auto max-h-[70vh]"
           } ${baseCanvas ? "" : "hidden"}`}
         />
       </div>

@@ -236,13 +236,13 @@ export default function Home() {
       <Hero />
 
       <div className="mx-auto grid max-w-5xl items-start gap-6 px-6 py-10 md:grid-cols-[1.3fr_1fr]">
-        <section className="flex flex-col gap-4">
+        <section className="flex min-w-0 flex-col gap-4">
           <UploadZone onFilesAdded={handleFilesAdded} />
           <FileQueue files={files} onRemove={handleRemove} onDownload={handleDownload} onPreview={handlePreview} />
         </section>
 
-        <section className="flex flex-col gap-4">
-          <div className="sticky top-4 z-10 flex flex-col gap-4">
+        <section className="flex min-w-0 flex-col gap-4">
+          <div className="sticky top-4 z-10 flex min-w-0 flex-col gap-4">
             <LivePreview
               baseCanvas={liveBaseCanvas}
               settings={settings}

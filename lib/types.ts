@@ -2,6 +2,8 @@ export type ColorMode = "color" | "grayscale" | "bw";
 
 export type PageFit = "original" | "a4";
 
+export type MarginSide = "none" | "top" | "bottom" | "left" | "right";
+
 export interface ScanSettings {
   /** 0-30, jumlah butiran noise piksel */
   noise: number;
@@ -18,6 +20,10 @@ export interface ScanSettings {
   /** vignette di tepi halaman ala jatuhnya cahaya scanner */
   vignette: boolean;
   colorMode: ColorMode;
+  /** sisi mana yang dikasih margin ekstra ala kelebihan area scan, tanpa perlu memiringkan halaman */
+  marginSide: MarginSide;
+  /** 0-15, persentase dari lebar/tinggi halaman yang jadi margin ekstra tsb */
+  marginSize: number;
   /** 1.5 - 3.0, resolusi render sebelum dikompres */
   renderScale: number;
   /** 0.5 - 0.95 kualitas kompresi JPEG */
@@ -37,6 +43,8 @@ export const PRESETS: Record<PresetName, ScanSettings> = {
     skewDeg: 0.3,
     vignette: false,
     colorMode: "color",
+    marginSide: "none",
+    marginSize: 0,
     renderScale: 2.2,
     jpegQuality: 0.85,
     pageFit: "original",
@@ -50,6 +58,8 @@ export const PRESETS: Record<PresetName, ScanSettings> = {
     skewDeg: 1.1,
     vignette: true,
     colorMode: "grayscale",
+    marginSide: "none",
+    marginSize: 0,
     renderScale: 2.0,
     jpegQuality: 0.78,
     pageFit: "original",
@@ -63,6 +73,8 @@ export const PRESETS: Record<PresetName, ScanSettings> = {
     skewDeg: 0,
     vignette: false,
     colorMode: "grayscale",
+    marginSide: "none",
+    marginSize: 0,
     renderScale: 1.5,
     jpegQuality: 0.6,
     pageFit: "original",
@@ -76,6 +88,8 @@ export const PRESETS: Record<PresetName, ScanSettings> = {
     skewDeg: 0.8,
     vignette: true,
     colorMode: "grayscale",
+    marginSide: "left",
+    marginSize: 4,
     renderScale: 2.0,
     jpegQuality: 0.72,
     pageFit: "original",

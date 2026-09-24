@@ -227,6 +227,53 @@ export default function SettingsPanel({
           />
         </label>
       </div>
+
+      <div className="flex flex-col gap-3 border-t border-ink-line pt-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm text-paper-bright">Margin ekstra</span>
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {(
+              [
+                ["none", "Tanpa"],
+                ["top", "Atas"],
+                ["bottom", "Bawah"],
+                ["left", "Kiri"],
+                ["right", "Kanan"],
+              ] as const
+            ).map(([side, label]) => (
+              <button
+                key={side}
+                disabled={disabled}
+                onClick={() => update({ marginSide: side })}
+                className={`rounded-md px-2.5 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40 ${
+                  settings.marginSide === side
+                    ? "bg-scan text-ink"
+                    : "bg-ink-line text-paper-dim hover:text-paper-bright"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="text-[11px] leading-snug text-paper-dim/80">
+          Nyisain sedikit alas scanner di satu sisi, kayak dokumen yang
+          diletakkan agak menepi. Bisa dipakai sendiri tanpa perlu
+          kemiringan sama sekali.
+        </p>
+
+        {settings.marginSide !== "none" && (
+          <Slider
+            label="Ukuran margin"
+            value={settings.marginSize}
+            min={1}
+            max={15}
+            unit="%"
+            onChange={(v) => update({ marginSize: v })}
+            disabled={disabled}
+          />
+        )}
+      </div>
     </div>
   );
 }

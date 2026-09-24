@@ -68,8 +68,9 @@ export default function LivePreview({
 
       {baseCanvas && (
         <p className="truncate text-xs text-paper-dim">
-          Dari: {fileName} · perubahan slider langsung kelihatan di sini.
-          Kemiringan halaman asli tetap diacak per halaman saat diproses.
+          Dari halaman 1 file &quot;{fileName}&quot; · geser slider di bawah,
+          langsung keliatan hasilnya di sini. Kemiringan tiap halaman asli
+          tetap diacak pas diproses beneran.
         </p>
       )}
     </div>

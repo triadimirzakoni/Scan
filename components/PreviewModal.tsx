@@ -41,7 +41,10 @@ export default function PreviewModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 border-b border-ink-line px-4 py-3">
-          <p className="truncate text-sm text-paper-bright">{fileName}</p>
+          <div className="min-w-0">
+            <p className="text-xs text-scan">Ini preview hasilnya 👀</p>
+            <p className="truncate text-sm text-paper-bright">{fileName}</p>
+          </div>
           <div className="flex shrink-0 items-center gap-2">
             <a
               href={previewUrl}

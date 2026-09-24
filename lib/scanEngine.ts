@@ -144,6 +144,69 @@ function clamp(v: number): number {
  * acak ringan, mengisi latar dengan warna kertas supaya sudut yang
  * terekspos akibat rotasi tidak transparan/hitam.
  */
+/**
+ * Mengecat "alas scanner" di area yang terekspos saat halaman dimiringkan —
+ * bukan putih rata, tapi gradasi lembut ala cahaya lid scanner yang tidak
+ * merata, plus sedikit noise supaya tidak terlihat digital/flat.
+ */
+function paintScannerBed(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number
+): void {
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, "#f6f3ea");
+  gradient.addColorStop(0.5, "#efece1");
+  gradient.addColorStop(1, "#e6e2d5");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // noise dibuat di kanvas kecil lalu di-scale ke ukuran penuh, supaya
+  // tidak perlu loop piksel di resolusi tinggi (berat untuk PDF besar)
+  const noiseSize = 48;
+  const noiseCanvas = document.createElement("canvas");
+  noiseCanvas.width = noiseSize;
+  noiseCanvas.height = noiseSize;
+  const nctx = noiseCanvas.getContext("2d");
+  if (nctx) {
+    const imgData = nctx.createImageData(noiseSize, noiseSize);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const v = 128 + (Math.random() - 0.5) * 60;
+      imgData.data[i] = v;
+      imgData.data[i + 1] = v;
+      imgData.data[i + 2] = v;
+      imgData.data[i + 3] = 16;
+    }
+    nctx.putImageData(imgData, 0, 0);
+    ctx.drawImage(noiseCanvas, 0, 0, width, height);
+  }
+}
+
+/**
+ * Menggambar bayangan lembut mengikuti bentuk halaman yang dimiringkan,
+ * meniru bayangan tipis yang terbentuk karena dokumen fisik sedikit
+ * terangkat dari alas scanner.
+ */
+function paintPageShadow(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  angle: number,
+  pageWidth: number,
+  pageHeight: number
+): void {
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(angle);
+  ctx.shadowColor = "rgba(30,28,22,0.30)";
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(-pageWidth / 2, -pageHeight / 2, pageWidth, pageHeight);
+  ctx.restore();
+}
+
 function drawWithSkew(
   source: HTMLCanvasElement,
   skewDeg: number
@@ -157,8 +220,8 @@ function drawWithSkew(
   const ctx = out.getContext("2d");
   if (!ctx) return source;
 
-  ctx.fillStyle = "#f5f2e9";
-  ctx.fillRect(0, 0, out.width, out.height);
+  paintScannerBed(ctx, out.width, out.height);
+  paintPageShadow(ctx, out.width / 2, out.height / 2, angle, source.width, source.height);
 
   ctx.translate(out.width / 2, out.height / 2);
   ctx.rotate(angle);
@@ -186,8 +249,9 @@ function applyFixedSkew(
   const ctx = out.getContext("2d");
   if (!ctx) return source;
 
-  ctx.fillStyle = "#f5f2e9";
-  ctx.fillRect(0, 0, out.width, out.height);
+  paintScannerBed(ctx, out.width, out.height);
+  paintPageShadow(ctx, out.width / 2, out.height / 2, angle, source.width, source.height);
+
   ctx.translate(out.width / 2, out.height / 2);
   ctx.rotate(angle);
   ctx.drawImage(source, -source.width / 2, -source.height / 2);

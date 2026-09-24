@@ -35,7 +35,7 @@ export default function FileQueue({ files, onRemove, onDownload, onPreview }: Fi
   if (files.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-ink-line px-4 py-6 text-center text-sm text-paper-dim">
-        Belum ada file. Antrian akan muncul di sini.
+        Belum ada file nih. Antriannya bakal muncul di sini.
       </p>
     );
   }

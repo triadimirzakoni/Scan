@@ -19,17 +19,17 @@ function makeId() {
 }
 
 function statusMessage(files: QueuedFile[], isProcessing: boolean): string {
-  if (files.length === 0) return "Taruh PDF-nya di sini, biar aku yang bereskan~";
+  if (files.length === 0) return "Upload sini aja mas/mba, biar aku yang scannin 🙏";
   if (isProcessing) {
     const current = files.find((f) => f.status === "memproses");
-    if (current) return `Lagi ngescan "${current.file.name}"... sabar ya!`;
-    return "Lagi kerja nih, bentar lagi selesai.";
+    if (current) return `Bentar ya, lagi scannin "${current.file.name}"...`;
+    return "Proses jalan, santuy dulu~";
   }
   const failed = files.filter((f) => f.status === "gagal").length;
   const done = files.filter((f) => f.status === "selesai").length;
-  if (failed > 0) return `Ada ${failed} file yang gagal, coba cek lagi ya.`;
-  if (done === files.length && done > 0) return "Semua beres! Tinggal diunduh~";
-  return "Siap diproses kapan pun kamu mau.";
+  if (failed > 0) return `Waduh, ${failed} file gagal nih. Coba cek lagi ya.`;
+  if (done === files.length && done > 0) return "Kelar semua! Tinggal diunduh~ 🎉";
+  return "Siap gas kapan aja.";
 }
 
 export default function Home() {
@@ -235,19 +235,21 @@ export default function Home() {
       <Header />
       <Hero />
 
-      <div className="mx-auto grid max-w-5xl gap-6 px-6 py-10 md:grid-cols-[1.3fr_1fr]">
+      <div className="mx-auto grid max-w-5xl items-start gap-6 px-6 py-10 md:grid-cols-[1.3fr_1fr]">
         <section className="flex flex-col gap-4">
           <UploadZone onFilesAdded={handleFilesAdded} />
           <FileQueue files={files} onRemove={handleRemove} onDownload={handleDownload} onPreview={handlePreview} />
         </section>
 
         <section className="flex flex-col gap-4">
-          <LivePreview
-            baseCanvas={liveBaseCanvas}
-            settings={settings}
-            fileName={liveBaseName}
-            isLoading={liveBaseLoading}
-          />
+          <div className="sticky top-4 z-10 flex flex-col gap-4">
+            <LivePreview
+              baseCanvas={liveBaseCanvas}
+              settings={settings}
+              fileName={liveBaseName}
+              isLoading={liveBaseLoading}
+            />
+          </div>
           <SettingsPanel
             settings={settings}
             onChange={handleSettingsChange}

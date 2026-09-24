@@ -24,6 +24,7 @@ function Slider({
   max,
   step = 1,
   unit = "",
+  hint,
   onChange,
   disabled,
 }: {
@@ -33,6 +34,7 @@ function Slider({
   max: number;
   step?: number;
   unit?: string;
+  hint?: string;
   onChange: (v: number) => void;
   disabled?: boolean;
 }) {
@@ -55,6 +57,7 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-ink-line accent-scan disabled:cursor-not-allowed disabled:opacity-40"
       />
+      {hint && <p className="text-[11px] leading-snug text-paper-dim/80">{hint}</p>}
     </label>
   );
 }
@@ -156,15 +159,17 @@ export default function SettingsPanel({
           max={3}
           step={0.1}
           unit="x"
+          hint="Makin tinggi = hasil makin tajam & detail, tapi ukuran file dan waktu proses ikut naik. 2x udah cukup buat kebanyakan dokumen."
           onChange={(v) => update({ renderScale: v })}
           disabled={disabled}
         />
         <Slider
-          label="Kualitas kompresi"
+          label="Kualitas gambar"
           value={Math.round(settings.jpegQuality * 100)}
           min={40}
           max={95}
           unit="%"
+          hint="Ini soal kompresi: makin tinggi persennya, gambar makin bagus tapi file makin gede. Makin rendah, file makin kecil tapi ada risiko sedikit pecah/blocky."
           onChange={(v) => update({ jpegQuality: v / 100 })}
           disabled={disabled}
         />

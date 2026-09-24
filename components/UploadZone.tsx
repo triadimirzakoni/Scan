@@ -57,10 +57,11 @@ export default function UploadZone({ onFilesAdded }: UploadZoneProps) {
         PDF saja
       </span>
       <p className="font-display text-lg text-paper-bright">
-        Seret file ke sini, atau klik untuk pilih
+        Seret PDF-nya ke sini, atau klik buat pilih file
       </p>
       <p className="text-sm text-paper-dim">
-        Bisa banyak file sekaligus. File tidak pernah meninggalkan komputer kamu.
+        Bisa upload banyak sekaligus. Tenang, file kamu gak kemana-mana —
+        semua diproses di device kamu aja.
       </p>
     </div>
   );

@@ -12,16 +12,16 @@ export default function Hero() {
       <div className="relative mx-auto flex max-w-5xl flex-col gap-6 px-6 py-12 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-xl">
           <h1 className="font-display text-3xl font-medium leading-tight text-paper-bright sm:text-4xl">
-            Biar Di yang scan-in.
+            Upload sini aja mas/mba, biar aku yang scannin 🙏
           </h1>
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-paper-dim">
-            Ubah dokumen digital jadi tampilan hasil scan tanpa print,
-            tanpa antre ke mesin fotokopi. Semua diproses di browser
-            kamu — tidak ada file yang dikirim ke server mana pun.
+            Dokumen digital disulap jadi kayak abis discan — gausah ngeprint,
+            gausah antre ke mesin fotokopi. Semua kelar di browser kamu, gak
+            ada file yang kekirim ke server manapun. Aman, santuy aja.
           </p>
         </div>
 
-        <Mascot message="Taruh PDF-nya di sini, biar aku yang bereskan~" />
+        <Mascot message="Taruh PDF-nya sini, biar aku yang scannin~" />
       </div>
     </section>
   );

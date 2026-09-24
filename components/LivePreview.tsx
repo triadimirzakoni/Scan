@@ -64,8 +64,8 @@ export default function LivePreview({
       </div>
 
       <div
-        className={`flex items-center justify-center overflow-hidden rounded-lg bg-ink transition-[max-height] duration-200 ${
-          collapsed ? "max-h-[64px]" : "min-h-[180px] max-h-[34vh]"
+        className={`flex items-center justify-center overflow-hidden rounded-lg bg-ink transition-all duration-200 ${
+          collapsed ? "h-16" : "min-h-[200px]"
         }`}
       >
         {!baseCanvas && (
@@ -77,9 +77,9 @@ export default function LivePreview({
         )}
         <canvas
           ref={canvasRef}
-          className={`w-full object-contain ${collapsed ? "h-16 w-auto" : "max-h-[34vh]"} ${
-            baseCanvas ? "" : "hidden"
-          }`}
+          className={`max-w-full object-contain ${
+            collapsed ? "h-16 w-auto" : "h-auto w-auto max-h-[46vh]"
+          } ${baseCanvas ? "" : "hidden"}`}
         />
       </div>
 

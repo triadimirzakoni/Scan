@@ -13,6 +13,10 @@ untuk dokumen internal perusahaan.
 - Kontrol detail: noise, kegelapan, kehangatan warna, kemiringan halaman,
   resolusi render, kualitas kompresi, mode warna (warna/abu-abu/hitam-putih),
   ukuran halaman (asli/A4)
+- **Pilih halaman**: scan cuma halaman tertentu (misal halaman pengesahan),
+  halaman lainnya dibiarkan persis seperti aslinya. Ada thumbnail, input
+  rentang (`1-3, 5, 8-10`), dan tombol **Scan semua halaman**
+- Pratinjau real-time (ikut halaman terpilih pertama) + opsi margin ekstra
 - Progress per halaman, per file, bisa dibatalkan di tengah proses
 - Unduh satu-satu atau semua sekaligus sebagai `.zip`
 - 100% client-side (pakai `pdf.js` + `jsPDF` + `JSZip`)
@@ -73,6 +77,17 @@ lib/
   scanEngine.ts       # inti pemrosesan PDF (render halaman → efek canvas → susun ulang PDF)
 ```
 
+## Popup pengumuman
+
+Popup "Fitur Baru Alert" muncul sekali untuk tiap pengunjung baru (dicatat
+di `localStorage` browser). Pengaturannya ada di `lib/announcement.ts`:
+
+- `endsAt` — setelah waktu ini popup berhenti muncul. Bulan di JavaScript
+  dihitung mulai dari 0 (`9` = Oktober).
+- `id` — ganti kalau mau munculin pengumuman baru ke semua orang lagi.
+
+Teksnya ada di `components/AnnouncementPopup.tsx`.
+
 ## Mengganti maskot
 
 Maskot saat ini diambil langsung dari URL eksternal
@@ -86,6 +101,9 @@ ketiga yang bisa hilang sewaktu-waktu):
 
 ## Catatan teknis
 
+- Mode "pilih halaman" memakai `pdf-lib` untuk menggabungkan halaman asli
+  (disalin apa adanya, tetap vektor) dengan halaman hasil scan. Mode "scan
+  semua halaman" tetap memakai `jsPDF` seperti sebelumnya.
 - `pdf.js` di-load lewat dynamic import dan worker-nya diarahkan ke CDN
   (cdnjs) supaya tidak perlu konfigurasi Webpack tambahan untuk membundel
   worker file secara lokal.

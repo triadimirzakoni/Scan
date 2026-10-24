@@ -1,12 +1,17 @@
 "use client";
 
 import type { QueuedFile } from "@/lib/types";
+import { formatPageRanges } from "@/lib/pageRange";
 
 interface FileQueueProps {
   files: QueuedFile[];
   onRemove: (id: string) => void;
   onDownload: (id: string) => void;
   onPreview: (id: string) => void;
+  onPickPages: (id: string) => void;
+  onResetPages: (id: string) => void;
+  /** true saat proses berjalan, pilihan halaman dikunci */
+  pagesLocked?: boolean;
 }
 
 function formatSize(bytes: number): string {
@@ -31,7 +36,15 @@ const STATUS_COLOR: Record<QueuedFile["status"], string> = {
   dibatalkan: "text-amber",
 };
 
-export default function FileQueue({ files, onRemove, onDownload, onPreview }: FileQueueProps) {
+export default function FileQueue({
+  files,
+  onRemove,
+  onDownload,
+  onPreview,
+  onPickPages,
+  onResetPages,
+  pagesLocked = false,
+}: FileQueueProps) {
   if (files.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-ink-line px-4 py-6 text-center text-sm text-paper-dim">
@@ -89,6 +102,45 @@ export default function FileQueue({ files, onRemove, onDownload, onPreview }: Fi
               </button>
             </div>
           </div>
+
+          {qf.status !== "memproses" && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {qf.pageMode === "selected" ? (
+                <>
+                  <span className="rounded-full border border-scan/50 bg-scan/10 px-2 py-0.5 font-mono text-[11px] text-scan">
+                    Hal. {formatPageRanges(qf.selectedPages)}
+                  </span>
+                  <button
+                    onClick={() => onPickPages(qf.id)}
+                    disabled={pagesLocked}
+                    className="text-xs text-paper-dim underline-offset-2 hover:text-paper-bright hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Ubah
+                  </button>
+                  <button
+                    onClick={() => onResetPages(qf.id)}
+                    disabled={pagesLocked}
+                    className="text-xs text-scan underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Scan semua halaman
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="rounded-full border border-ink-line px-2 py-0.5 font-mono text-[11px] text-paper-dim">
+                    Semua halaman
+                  </span>
+                  <button
+                    onClick={() => onPickPages(qf.id)}
+                    disabled={pagesLocked}
+                    className="text-xs text-scan underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Pilih halaman
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {qf.status === "memproses" && (
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-line">

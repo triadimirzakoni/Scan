@@ -1,5 +1,6 @@
 "use client";
 
+import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { ScanSettings } from "./types";
 
 // pdf.js dan jsPDF hanya boleh jalan di browser (butuh Canvas/DOM),
@@ -265,19 +266,26 @@ function composePageBed(
   return out;
 }
 
-/**
- * Merender HANYA halaman pertama sebuah PDF ke canvas mentah (belum diberi
- * efek apa pun), dibatasi lebar maksimum supaya cepat dipakai untuk
- * pratinjau real-time. Tidak menyentuh sisa halaman sama sekali.
- */
-export async function renderFirstPageCanvas(
-  file: File,
-  maxWidth = 640
-): Promise<HTMLCanvasElement> {
+export type PdfDocumentProxy = PDFDocumentProxy;
+
+/** Membuka PDF lewat pdf.js, dipakai untuk pratinjau & pemilih halaman. */
+export async function openPdf(file: File): Promise<PdfDocumentProxy> {
   const pdfjsLib = await getPdfjs();
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const page = await pdf.getPage(1);
+  return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+}
+
+/**
+ * Merender SATU halaman PDF ke canvas mentah (belum diberi efek apa pun),
+ * dibatasi lebar maksimum supaya cepat dipakai untuk pratinjau real-time
+ * maupun thumbnail pemilih halaman.
+ */
+export async function renderPdfPageToCanvas(
+  pdf: PdfDocumentProxy,
+  pageNumber: number,
+  maxWidth = 640
+): Promise<HTMLCanvasElement> {
+  const page = await pdf.getPage(pageNumber);
 
   const baseViewport = page.getViewport({ scale: 1.0 });
   const scale = Math.min(2, maxWidth / baseViewport.width);
@@ -294,10 +302,24 @@ export async function renderFirstPageCanvas(
 }
 
 /**
+ * Merender satu halaman tertentu (default halaman 1) dari sebuah file PDF.
+ * Tidak menyentuh halaman lain sama sekali.
+ */
+export async function renderPageCanvas(
+  file: File,
+  pageNumber = 1,
+  maxWidth = 640
+): Promise<HTMLCanvasElement> {
+  const pdf = await openPdf(file);
+  const safePage = Math.min(Math.max(1, pageNumber), pdf.numPages);
+  return renderPdfPageToCanvas(pdf, safePage, maxWidth);
+}
+
+/**
  * Menjalankan pipeline efek yang sama seperti hasil akhir (blur → noise/
- * kontras/warna → skew), tapi terhadap SALINAN canvas dasar, dan dengan
- * skew deterministik. Dipakai untuk pratinjau real-time saat slider
- * digeser, tanpa memproses ulang seluruh PDF.
+ * kontras/warna → skew/margin), tapi terhadap SALINAN canvas dasar, dan
+ * dengan sudut kemiringan deterministik. Dipakai untuk pratinjau
+ * real-time saat slider digeser, tanpa memproses ulang seluruh PDF.
  */
 export function applyPreviewPipeline(
   baseCanvas: HTMLCanvasElement,
@@ -319,100 +341,194 @@ export function applyPreviewPipeline(
 export interface ScanResult {
   blob: Blob;
   pageCount: number;
+  scannedCount: number;
+}
+
+export interface ScanOptions {
+  /**
+   * Nomor halaman (mulai dari 1) yang mau di-scan. Kalau kosong/undefined,
+   * semua halaman di-scan. Halaman yang tidak dipilih dibiarkan persis
+   * seperti aslinya (tetap vektor, teks tetap bisa dicopy).
+   */
+  pages?: number[];
+}
+
+const A4_PT: [number, number] = [595.28, 841.89];
+
+interface ScannedPage {
+  jpegDataUrl: string;
+  /** ukuran halaman asli (pt) pada skala 1 */
+  originalWidth: number;
+  originalHeight: number;
+  /** ukuran halaman akhir (pt) setelah mempertimbangkan opsi A4 */
+  pageWidth: number;
+  pageHeight: number;
+  orientation: "portrait" | "landscape";
+}
+
+/** Render + beri efek scan untuk satu halaman, hasilnya JPEG data URL. */
+async function renderScannedPage(
+  pdf: PdfDocumentProxy,
+  pageNum: number,
+  settings: ScanSettings
+): Promise<ScannedPage> {
+  const page = await pdf.getPage(pageNum);
+  const viewport = page.getViewport({ scale: settings.renderScale });
+  const originalViewport = page.getViewport({ scale: 1.0 });
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+
+  if (!ctx) throw new Error("Canvas 2D context tidak tersedia");
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  if (settings.blur > 0) {
+    applyLensBlur(canvas, settings.blur);
+  }
+
+  applyScanEffect(canvas, settings);
+  const finalCanvas = composePageBed(canvas, settings);
+
+  const jpegDataUrl = finalCanvas.toDataURL("image/jpeg", settings.jpegQuality);
+
+  let pageWidth = originalViewport.width;
+  let pageHeight = originalViewport.height;
+  const orientation: "portrait" | "landscape" =
+    pageWidth > pageHeight ? "landscape" : "portrait";
+
+  if (settings.pageFit === "a4") {
+    [pageWidth, pageHeight] =
+      orientation === "landscape" ? [A4_PT[1], A4_PT[0]] : A4_PT;
+  }
+
+  return {
+    jpegDataUrl,
+    originalWidth: originalViewport.width,
+    originalHeight: originalViewport.height,
+    pageWidth,
+    pageHeight,
+    orientation,
+  };
+}
+
+/** Ukuran & posisi gambar di dalam halaman (muat proporsional kalau A4). */
+function fitImageInPage(p: ScannedPage) {
+  if (p.pageWidth === p.originalWidth && p.pageHeight === p.originalHeight) {
+    return { x: 0, y: 0, w: p.pageWidth, h: p.pageHeight };
+  }
+  const scale = Math.min(
+    p.pageWidth / p.originalWidth,
+    p.pageHeight / p.originalHeight
+  );
+  const w = p.originalWidth * scale;
+  const h = p.originalHeight * scale;
+  return { x: (p.pageWidth - w) / 2, y: (p.pageHeight - h) / 2, w, h };
 }
 
 /**
- * Memproses satu file PDF: render tiap halaman ke canvas, terapkan efek
- * scan, lalu susun ulang jadi PDF baru berbasis gambar.
+ * Memproses satu file PDF. Tanpa `options.pages` (atau kalau semua halaman
+ * dipilih): semua halaman di-render, diberi efek scan, lalu disusun jadi
+ * PDF berbasis gambar. Dengan `options.pages`: hanya halaman terpilih yang
+ * di-scan, halaman lain disalin apa adanya dari PDF asli.
  */
 export async function scanPdfFile(
   file: File,
   settings: ScanSettings,
-  callbacks: ProcessCallbacks = {}
+  callbacks: ProcessCallbacks = {},
+  options: ScanOptions = {}
 ): Promise<ScanResult> {
-  const pdfjsLib = await getPdfjs();
-  const { jsPDF } = await import("jspdf");
-
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pdfjsLib = await getPdfjs();
+  // pdf.js bisa "mengambil alih" buffer yang dikirim, jadi kita kasih salinan
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) }).promise;
   const totalPages = pdf.numPages;
 
-  let outPdf: InstanceType<typeof jsPDF> | null = null;
+  const selected = Array.from(
+    new Set((options.pages ?? []).filter((n) => n >= 1 && n <= totalPages))
+  ).sort((a, b) => a - b);
+  const scanAll = selected.length === 0 || selected.length === totalPages;
+  const selectedSet = new Set(selected);
 
-  const A4_PT: [number, number] = [595.28, 841.89];
-
-  for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+  const checkCancel = () => {
     if (callbacks.shouldCancel?.()) {
       throw new DOMException("Dibatalkan pengguna", "AbortError");
     }
+  };
 
-    const page = await pdf.getPage(pageNum);
-    const viewport = page.getViewport({ scale: settings.renderScale });
-    const originalViewport = page.getViewport({ scale: 1.0 });
+  if (scanAll) {
+    const { jsPDF } = await import("jspdf");
+    let outPdf: InstanceType<typeof jsPDF> | null = null;
 
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      checkCancel();
+      const sp = await renderScannedPage(pdf, pageNum, settings);
 
-    if (!ctx) throw new Error("Canvas 2D context tidak tersedia");
+      if (pageNum === 1) {
+        outPdf = new jsPDF({
+          orientation: sp.orientation,
+          unit: "pt",
+          format: [sp.pageWidth, sp.pageHeight],
+        });
+      } else {
+        outPdf!.addPage([sp.pageWidth, sp.pageHeight], sp.orientation);
+      }
 
-    await page.render({ canvasContext: ctx, viewport }).promise;
+      const fit = fitImageInPage(sp);
+      if (settings.pageFit === "a4") {
+        outPdf!.setFillColor(245, 242, 233);
+        outPdf!.rect(0, 0, sp.pageWidth, sp.pageHeight, "F");
+      }
+      outPdf!.addImage(sp.jpegDataUrl, "JPEG", fit.x, fit.y, fit.w, fit.h);
 
-    if (settings.blur > 0) {
-      applyLensBlur(canvas, settings.blur);
+      callbacks.onPageProgress?.(pageNum, totalPages);
     }
 
-    applyScanEffect(canvas, settings);
-    const finalCanvas = composePageBed(canvas, settings);
+    if (!outPdf) throw new Error("PDF tidak memiliki halaman");
+    return {
+      blob: outPdf.output("blob"),
+      pageCount: totalPages,
+      scannedCount: totalPages,
+    };
+  }
 
-    const imgData = finalCanvas.toDataURL(
-      "image/jpeg",
-      settings.jpegQuality
-    );
+  // Mode halaman terpilih: gabungkan halaman asli + halaman hasil scan
+  const { PDFDocument, rgb } = await import("pdf-lib");
+  const sourceDoc = await PDFDocument.load(arrayBuffer);
+  const outDoc = await PDFDocument.create();
 
-    let pageWidth = originalViewport.width;
-    let pageHeight = originalViewport.height;
-    let orientation: "portrait" | "landscape" =
-      pageWidth > pageHeight ? "landscape" : "portrait";
+  for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+    checkCancel();
 
-    if (settings.pageFit === "a4") {
-      [pageWidth, pageHeight] =
-        orientation === "landscape" ? [A4_PT[1], A4_PT[0]] : A4_PT;
-    }
+    if (selectedSet.has(pageNum)) {
+      const sp = await renderScannedPage(pdf, pageNum, settings);
+      const image = await outDoc.embedJpg(sp.jpegDataUrl);
+      const page = outDoc.addPage([sp.pageWidth, sp.pageHeight]);
+      const fit = fitImageInPage(sp);
 
-    if (pageNum === 1) {
-      outPdf = new jsPDF({
-        orientation,
-        unit: "pt",
-        format: [pageWidth, pageHeight],
-      });
+      if (settings.pageFit === "a4") {
+        page.drawRectangle({
+          x: 0,
+          y: 0,
+          width: sp.pageWidth,
+          height: sp.pageHeight,
+          color: rgb(245 / 255, 242 / 255, 233 / 255),
+        });
+      }
+      // pdf-lib memakai titik asal kiri-bawah; posisi dibuat simetris
+      // sehingga y yang sama berlaku untuk atas maupun bawah
+      page.drawImage(image, { x: fit.x, y: fit.y, width: fit.w, height: fit.h });
     } else {
-      outPdf!.addPage([pageWidth, pageHeight], orientation);
-    }
-
-    if (settings.pageFit === "a4") {
-      // muat gambar secara proporsional di tengah halaman A4
-      const scale = Math.min(
-        pageWidth / originalViewport.width,
-        pageHeight / originalViewport.height
-      );
-      const drawW = originalViewport.width * scale;
-      const drawH = originalViewport.height * scale;
-      const offsetX = (pageWidth - drawW) / 2;
-      const offsetY = (pageHeight - drawH) / 2;
-      outPdf!.setFillColor(245, 242, 233);
-      outPdf!.rect(0, 0, pageWidth, pageHeight, "F");
-      outPdf!.addImage(imgData, "JPEG", offsetX, offsetY, drawW, drawH);
-    } else {
-      outPdf!.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+      const [copied] = await outDoc.copyPages(sourceDoc, [pageNum - 1]);
+      outDoc.addPage(copied);
     }
 
     callbacks.onPageProgress?.(pageNum, totalPages);
   }
 
-  if (!outPdf) throw new Error("PDF tidak memiliki halaman");
-
-  const blob = outPdf.output("blob");
-  return { blob, pageCount: totalPages };
+  const bytes = await outDoc.save();
+  const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+  return { blob, pageCount: totalPages, scannedCount: selected.length };
 }

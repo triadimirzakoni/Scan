@@ -103,9 +103,15 @@ export type FileStatus =
   | "gagal"
   | "dibatalkan";
 
+export type PageMode = "all" | "selected";
+
 export interface QueuedFile {
   id: string;
   file: File;
+  /** "all" = scan semua halaman, "selected" = hanya halaman di selectedPages */
+  pageMode: PageMode;
+  /** nomor halaman (mulai dari 1) yang dipilih, terurut; dipakai kalau pageMode = "selected" */
+  selectedPages: number[];
   status: FileStatus;
   progress: number; // 0-100
   currentPage?: number;

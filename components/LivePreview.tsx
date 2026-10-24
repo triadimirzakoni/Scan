@@ -8,6 +8,7 @@ interface LivePreviewProps {
   baseCanvas: HTMLCanvasElement | null;
   settings: ScanSettings;
   fileName: string;
+  pageNumber: number;
   isLoading: boolean;
 }
 
@@ -15,6 +16,7 @@ export default function LivePreview({
   baseCanvas,
   settings,
   fileName,
+  pageNumber,
   isLoading,
 }: LivePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,7 +52,7 @@ export default function LivePreview({
         </h2>
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] uppercase tracking-wide text-scan">
-            halaman 1
+            halaman {pageNumber}
           </span>
           {baseCanvas && (
             <button
@@ -85,7 +87,7 @@ export default function LivePreview({
 
       {baseCanvas && !collapsed && (
         <p className="truncate text-xs text-paper-dim">
-          Dari halaman 1 file &quot;{fileName}&quot; · geser slider di bawah,
+          Dari halaman {pageNumber} file &quot;{fileName}&quot; · geser slider di bawah,
           langsung keliatan hasilnya di sini. Kemiringan tiap halaman asli
           tetap diacak pas diproses beneran.
         </p>

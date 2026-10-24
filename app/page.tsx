@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import Mascot from "@/components/Mascot";
 import PreviewModal from "@/components/PreviewModal";
 import LivePreview from "@/components/LivePreview";
+import DraggablePanel from "@/components/DraggablePanel";
 import PagePickerModal from "@/components/PagePickerModal";
 import AnnouncementPopup from "@/components/AnnouncementPopup";
 import {
@@ -354,15 +355,18 @@ export default function Home() {
         </section>
 
         <section className="flex min-w-0 flex-col gap-4">
-          <div className="sticky top-4 z-10 flex min-w-0 flex-col gap-4">
-            <LivePreview
-              baseCanvas={liveBaseCanvas}
-              settings={settings}
-              fileName={liveBaseName}
-              pageNumber={liveBasePage}
-              isLoading={liveBaseLoading}
-            />
-          </div>
+          <DraggablePanel>
+            {(controls) => (
+              <LivePreview
+                baseCanvas={liveBaseCanvas}
+                settings={settings}
+                fileName={liveBaseName}
+                pageNumber={liveBasePage}
+                isLoading={liveBaseLoading}
+                dragControls={controls}
+              />
+            )}
+          </DraggablePanel>
           <SettingsPanel
             settings={settings}
             onChange={handleSettingsChange}
@@ -376,7 +380,9 @@ export default function Home() {
         </section>
       </div>
 
-      <div className="px-6">
+      {/* wrapper ini yang sticky, dan harus anak langsung <main> supaya bisa
+          menempel di bawah layar selama halaman di-scroll */}
+      <div className="pointer-events-none sticky bottom-4 z-20 mt-6 px-6">
         <ActionBar
           totalFiles={files.length}
           pendingCount={pendingCount}

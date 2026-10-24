@@ -47,7 +47,7 @@ export default function FileQueue({
 }: FileQueueProps) {
   if (files.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-ink-line px-4 py-6 text-center text-sm text-paper-dim">
+      <p className="rounded-2xl border border-dashed border-ink-line px-4 py-6 text-center text-sm text-paper-dim">
         Belum ada file nih. Antriannya bakal muncul di sini.
       </p>
     );
@@ -58,12 +58,12 @@ export default function FileQueue({
       {files.map((qf) => (
         <li
           key={qf.id}
-          className="flex flex-col gap-2 rounded-lg border border-ink-line bg-ink-panel/60 px-4 py-3"
+          className="flex flex-col gap-2.5 rounded-2xl border border-white/5 bg-ink-panel/60 px-4 py-3.5 shadow-soft"
         >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-paper-bright">{qf.file.name}</p>
-              <p className="font-mono text-xs text-paper-dim">
+              <p className="truncate text-sm font-semibold text-paper-bright">{qf.file.name}</p>
+              <p className="tabular text-xs text-paper-dim">
                 {formatSize(qf.file.size)}
                 {qf.totalPages ? ` · ${qf.totalPages} hal.` : ""}
                 {" · "}
@@ -81,13 +81,13 @@ export default function FileQueue({
                 <>
                   <button
                     onClick={() => onPreview(qf.id)}
-                    className="rounded-md border border-scan px-3 py-1.5 text-xs font-medium text-scan hover:bg-scan/10"
+                    className="rounded-lg border border-scan/60 px-3 py-1.5 text-xs font-semibold text-scan-glow transition-colors hover:bg-scan/10"
                   >
                     Pratinjau
                   </button>
                   <button
                     onClick={() => onDownload(qf.id)}
-                    className="rounded-md bg-scan px-3 py-1.5 text-xs font-medium text-ink hover:bg-scan/90"
+                    className="rounded-lg bg-scan px-3 py-1.5 text-xs font-semibold text-ink transition hover:brightness-110"
                   >
                     Unduh
                   </button>
@@ -96,7 +96,7 @@ export default function FileQueue({
               <button
                 onClick={() => onRemove(qf.id)}
                 aria-label={`Hapus ${qf.file.name} dari antrian`}
-                className="rounded-md px-2 py-1.5 text-xs text-paper-dim hover:bg-ink-line hover:text-paper-bright"
+                className="rounded-lg px-2 py-1.5 text-xs text-paper-dim transition-colors hover:bg-white/10 hover:text-paper-bright"
               >
                 ✕
               </button>
@@ -107,7 +107,7 @@ export default function FileQueue({
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {qf.pageMode === "selected" ? (
                 <>
-                  <span className="rounded-full border border-scan/50 bg-scan/10 px-2 py-0.5 font-mono text-[11px] text-scan">
+                  <span className="rounded-full bg-scan/15 px-2.5 py-0.5 text-[11px] font-medium text-scan-glow">
                     Hal. {formatPageRanges(qf.selectedPages)}
                   </span>
                   <button
@@ -127,7 +127,7 @@ export default function FileQueue({
                 </>
               ) : (
                 <>
-                  <span className="rounded-full border border-ink-line px-2 py-0.5 font-mono text-[11px] text-paper-dim">
+                  <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] font-medium text-paper-dim">
                     Semua halaman
                   </span>
                   <button
@@ -143,9 +143,9 @@ export default function FileQueue({
           )}
 
           {qf.status === "memproses" && (
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-line">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-ink-line">
               <div
-                className="h-full rounded-full bg-scan transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-scan-dim to-scan-glow transition-all"
                 style={{ width: `${qf.progress}%` }}
               />
             </div>

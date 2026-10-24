@@ -27,7 +27,7 @@ export default function Mascot({ message, size = 96, className = "" }: MascotPro
           priority
         />
       </div>
-      <div className="relative mb-3 max-w-[220px] rounded-2xl rounded-bl-sm bg-paper-bright px-4 py-2.5 text-sm text-ink shadow-lg">
+      <div className="relative mb-3 max-w-[220px] rounded-2xl rounded-bl-md bg-paper-bright px-4 py-2.5 text-sm font-medium text-ink shadow-soft">
         {message}
       </div>
     </div>

@@ -79,12 +79,13 @@ lib/
 
 ## Popup pengumuman
 
-Popup "Fitur Baru Alert" muncul sekali untuk tiap pengunjung baru (dicatat
-di `localStorage` browser). Pengaturannya ada di `lib/announcement.ts`:
+Popup "Fitur Baru Alert" muncul tiap kali halaman dimuat atau di-refresh
+(tidak ada lagi catatan "sudah dilihat"). Pengaturannya ada di
+`lib/announcement.ts`:
 
 - `endsAt` — setelah waktu ini popup berhenti muncul. Bulan di JavaScript
   dihitung mulai dari 0 (`9` = Oktober).
-- `id` — ganti kalau mau munculin pengumuman baru ke semua orang lagi.
+- `id` — label pengumuman saja, tidak mempengaruhi kapan popup muncul.
 
 Teksnya ada di `components/AnnouncementPopup.tsx`.
 

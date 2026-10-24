@@ -30,19 +30,19 @@ export default function PreviewModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-md"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Pratinjau ${fileName}`}
     >
       <div
-        className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-ink-line bg-ink-soft shadow-2xl"
+        className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-ink-soft shadow-2xl shadow-black/60"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-ink-line px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-3.5">
           <div className="min-w-0">
-            <p className="text-xs text-scan">Ini preview hasilnya 👀</p>
+            <p className="text-xs font-medium text-scan-glow">Ini preview hasilnya 👀</p>
             <p className="truncate text-sm text-paper-bright">{fileName}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -50,20 +50,20 @@ export default function PreviewModal({
               href={previewUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-md px-2.5 py-1.5 text-xs text-paper-dim hover:bg-ink-line hover:text-paper-bright"
+              className="rounded-lg px-2.5 py-1.5 text-xs text-paper-dim hover:bg-white/10 hover:text-paper-bright"
             >
               Buka tab baru
             </a>
             <button
               onClick={onDownload}
-              className="rounded-md bg-scan px-3 py-1.5 text-xs font-medium text-ink hover:bg-scan/90"
+              className="rounded-lg bg-scan px-3 py-1.5 text-xs font-semibold text-ink hover:brightness-110"
             >
               Unduh
             </button>
             <button
               onClick={onClose}
               aria-label="Tutup pratinjau"
-              className="rounded-md px-2 py-1.5 text-xs text-paper-dim hover:bg-ink-line hover:text-paper-bright"
+              className="rounded-lg px-2 py-1.5 text-xs text-paper-dim hover:bg-white/10 hover:text-paper-bright"
             >
               ✕
             </button>

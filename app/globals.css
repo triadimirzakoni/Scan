@@ -8,18 +8,24 @@
 
 html,
 body {
-  background-color: #14181c;
-  color: #efe9da;
+  background-color: #0a1020;
+  color: #e3eaf8;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* angka rata lebar biar progres & hitungan nggak goyang */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background-color: #6ee7b0;
-  color: #14181c;
+  background-color: #5b9cff;
+  color: #0a1020;
 }
 
 /* fokus keyboard yang jelas, jangan dihilangkan */
 :focus-visible {
-  outline: 2px solid #6ee7b0;
+  outline: 2px solid #5b9cff;
   outline-offset: 2px;
 }
 
@@ -33,18 +39,18 @@ body {
   }
 }
 
-/* scrollbar tipis ala readout, opsional tapi konsisten dg tema */
+/* scrollbar tipis, konsisten dg tema */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #1b2027;
+  background: #0f1830;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3a414a;
+  background: #26365c;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a5561;
+  background: #35497a;
 }

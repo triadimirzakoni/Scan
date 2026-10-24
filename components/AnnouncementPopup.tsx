@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ANNOUNCEMENT, ANNOUNCEMENT_STORAGE_KEY } from "@/lib/announcement";
+import { ANNOUNCEMENT } from "@/lib/announcement";
 
 const MASCOT_SRC = "https://files.catbox.moe/knz8i6.png";
 
@@ -16,17 +16,10 @@ export default function AnnouncementPopup() {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Muncul sekali per pengunjung (per browser), hanya selama periode pengumuman.
+  // Muncul TIAP KALI halaman dimuat / di-refresh, selama periode pengumuman.
   // Dicek di useEffect supaya tidak bentrok dengan render di server.
   useEffect(() => {
     if (Date.now() > ANNOUNCEMENT.endsAt.getTime()) return;
-
-    try {
-      if (localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY)) return;
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, "1");
-    } catch {
-      // localStorage tidak tersedia (mis. mode privat ketat), tetap tampilkan
-    }
     setOpen(true);
   }, []);
 
@@ -48,37 +41,53 @@ export default function AnnouncementPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/70 p-4 backdrop-blur-md"
       onClick={() => setOpen(false)}
       role="dialog"
       aria-modal="true"
       aria-labelledby="announcement-title"
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-ink-line bg-ink-soft shadow-2xl"
+        className="relative max-h-[90vh] w-full max-w-md animate-pop overflow-y-auto rounded-3xl border border-white/10 bg-gradient-to-b from-ink-panel to-ink-soft shadow-2xl shadow-black/60"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* garis cahaya scanner di tepi atas, senada dengan hero */}
-        <div className="h-1 w-full bg-gradient-to-r from-scan/0 via-scan to-scan/0" aria-hidden="true" />
+        {/* cahaya biru lembut di pojok atas */}
+        <div
+          className="pointer-events-none absolute -top-24 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-scan/30 blur-3xl"
+          aria-hidden="true"
+        />
 
-        <div className="flex flex-col gap-4 p-6">
-          <div className="flex items-start gap-3">
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-scan/60">
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Tutup pengumuman"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-paper-dim transition-colors hover:bg-white/10 hover:text-paper-bright"
+        >
+          ✕
+        </button>
+
+        <div className="relative flex flex-col gap-5 p-7">
+          <div className="flex items-center gap-3.5 pr-6">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-ink/60 ring-1 ring-white/15">
               <Image
                 src={MASCOT_SRC}
                 alt=""
-                width={48}
-                height={48}
+                width={56}
+                height={56}
                 className="h-full w-full object-cover"
                 unoptimized
               />
             </div>
-            <h2
-              id="announcement-title"
-              className="font-display text-lg font-medium leading-snug text-paper-bright"
-            >
-              ⚡ Fitur Baru Alert: Scan Sat-Set Tanpa Drama PDF!
-            </h2>
+            <div>
+              <span className="inline-block rounded-full bg-scan/15 px-2.5 py-0.5 text-[11px] font-semibold text-scan-glow">
+                Fitur baru
+              </span>
+              <h2
+                id="announcement-title"
+                className="mt-1 font-display text-lg font-bold leading-snug text-paper-bright"
+              >
+                ⚡ Scan Sat-Set Tanpa Drama PDF!
+              </h2>
+            </div>
           </div>
 
           <p className="text-sm leading-relaxed text-paper-dim">
@@ -86,19 +95,19 @@ export default function AnnouncementPopup() {
             pangkas workflow! 🚫📄
           </p>
 
-          <div className="rounded-xl border border-ink-line bg-ink-panel/60 p-4">
-            <p className="text-xs font-medium text-scan">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <p className="text-xs font-semibold text-scan-glow">
               Workflow Baru (Biar Cepet Pulang/Tidur):
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2">
               {STEPS.map((step, i) => (
                 <div key={step.label} className="flex items-center gap-2">
-                  <span className="rounded-lg bg-ink px-2.5 py-1.5 text-sm text-paper-bright">
+                  <span className="rounded-xl bg-ink/70 px-3 py-1.5 text-sm text-paper-bright ring-1 ring-white/10">
                     {step.icon} {step.label}
                   </span>
                   {i < STEPS.length - 1 && (
-                    <span aria-hidden="true" className="text-paper-dim">
-                      ➡️
+                    <span aria-hidden="true" className="text-scan">
+                      →
                     </span>
                   )}
                 </div>
@@ -114,7 +123,7 @@ export default function AnnouncementPopup() {
           <button
             ref={buttonRef}
             onClick={() => setOpen(false)}
-            className="rounded-lg bg-scan px-4 py-2.5 text-sm font-medium text-ink hover:bg-scan/90"
+            className="rounded-xl bg-gradient-to-b from-scan-glow to-scan px-4 py-3 text-sm font-semibold text-ink shadow-glow transition hover:brightness-110 active:scale-[0.98]"
           >
             Siap, gas! 🚀
           </button>

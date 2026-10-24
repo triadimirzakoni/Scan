@@ -42,7 +42,7 @@ function Slider({
     <label className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between text-sm text-paper-bright">
         <span>{label}</span>
-        <span className="font-mono text-xs text-scan">
+        <span className="tabular text-xs font-semibold text-scan-glow">
           {value}
           {unit}
         </span>
@@ -55,7 +55,7 @@ function Slider({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-ink-line accent-scan disabled:cursor-not-allowed disabled:opacity-40"
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-ink-line accent-scan disabled:cursor-not-allowed disabled:opacity-40"
       />
       {hint && <p className="text-[11px] leading-snug text-paper-dim/80">{hint}</p>}
     </label>
@@ -73,22 +73,22 @@ export default function SettingsPanel({
     onChange({ ...settings, ...patch });
 
   return (
-    <div className="flex flex-col gap-5 rounded-xl border border-ink-line bg-ink-panel/60 p-5">
+    <div className="flex flex-col gap-5 rounded-3xl border border-white/5 bg-ink-panel/60 p-6 shadow-soft">
       <div>
-        <h2 className="font-display text-base text-paper-bright">Pengaturan efek</h2>
+        <h2 className="font-display text-base font-bold text-paper-bright">Pengaturan efek</h2>
         <div className="mt-3 grid grid-cols-2 gap-2">
           {(Object.keys(PRESETS) as PresetName[]).map((key) => (
             <button
               key={key}
               disabled={disabled}
               onClick={() => onPresetChange(key)}
-              className={`rounded-lg border px-2 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`rounded-xl border px-3 py-2.5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                 activePreset === key
-                  ? "border-scan bg-scan/10"
-                  : "border-ink-line hover:border-scan/50"
+                  ? "border-scan bg-scan/15 shadow-glow"
+                  : "border-white/10 hover:border-scan/50 hover:bg-white/[0.03]"
               }`}
             >
-              <p className="text-xs font-medium text-paper-bright">
+              <p className="text-xs font-semibold text-paper-bright">
                 {PRESET_LABELS[key].title}
               </p>
               <p className="mt-0.5 text-[11px] text-paper-dim">
@@ -99,7 +99,7 @@ export default function SettingsPanel({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-ink-line pt-4">
+      <div className="flex flex-col gap-4 border-t border-white/5 pt-5">
         <Slider
           label="Butiran noise"
           value={settings.noise}
@@ -175,7 +175,7 @@ export default function SettingsPanel({
         />
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-ink-line pt-4">
+      <div className="flex flex-col gap-3 border-t border-white/5 pt-5">
         <div className="flex items-center justify-between">
           <span className="text-sm text-paper-bright">Mode warna</span>
           <div className="flex gap-1.5">
@@ -184,10 +184,10 @@ export default function SettingsPanel({
                 key={mode}
                 disabled={disabled}
                 onClick={() => update({ colorMode: mode })}
-                className={`rounded-md px-2.5 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                   settings.colorMode === mode
-                    ? "bg-scan text-ink"
-                    : "bg-ink-line text-paper-dim hover:text-paper-bright"
+                    ? "bg-scan text-ink shadow-glow"
+                    : "bg-white/5 text-paper-dim hover:bg-white/10 hover:text-paper-bright"
                 }`}
               >
                 {mode === "color" ? "Warna" : mode === "grayscale" ? "Abu-abu" : "B/W"}
@@ -204,10 +204,10 @@ export default function SettingsPanel({
                 key={fit}
                 disabled={disabled}
                 onClick={() => update({ pageFit: fit })}
-                className={`rounded-md px-2.5 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                   settings.pageFit === fit
-                    ? "bg-scan text-ink"
-                    : "bg-ink-line text-paper-dim hover:text-paper-bright"
+                    ? "bg-scan text-ink shadow-glow"
+                    : "bg-white/5 text-paper-dim hover:bg-white/10 hover:text-paper-bright"
                 }`}
               >
                 {fit === "original" ? "Asli" : "A4"}
@@ -228,7 +228,7 @@ export default function SettingsPanel({
         </label>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-ink-line pt-4">
+      <div className="flex flex-col gap-3 border-t border-white/5 pt-5">
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm text-paper-bright">Margin ekstra</span>
           <div className="flex flex-wrap justify-end gap-1.5">
@@ -245,10 +245,10 @@ export default function SettingsPanel({
                 key={side}
                 disabled={disabled}
                 onClick={() => update({ marginSide: side })}
-                className={`rounded-md px-2.5 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                   settings.marginSide === side
-                    ? "bg-scan text-ink"
-                    : "bg-ink-line text-paper-dim hover:text-paper-bright"
+                    ? "bg-scan text-ink shadow-glow"
+                    : "bg-white/5 text-paper-dim hover:bg-white/10 hover:text-paper-bright"
                 }`}
               >
                 {label}

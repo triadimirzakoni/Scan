@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ScanSettings } from "@/lib/types";
 import { applyPreviewPipeline } from "@/lib/scanEngine";
+import type { DragControls } from "./DraggablePanel";
 
 interface LivePreviewProps {
   baseCanvas: HTMLCanvasElement | null;
@@ -10,6 +11,8 @@ interface LivePreviewProps {
   fileName: string;
   pageNumber: number;
   isLoading: boolean;
+  /** kalau diisi, header panel jadi pegangan untuk menggeser panel */
+  dragControls?: DragControls;
 }
 
 export default function LivePreview({
@@ -18,6 +21,7 @@ export default function LivePreview({
   fileName,
   pageNumber,
   isLoading,
+  dragControls,
 }: LivePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
@@ -45,19 +49,42 @@ export default function LivePreview({
   }, [baseCanvas, settings]);
 
   return (
-    <div className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-line bg-ink-panel/60 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-base text-paper-bright">
+    <div
+      className={`flex min-w-0 flex-col gap-3 rounded-3xl border border-white/5 p-5 shadow-soft ${
+        dragControls?.isFloating ? "bg-ink-soft" : "bg-ink-panel/60"
+      }`}
+    >
+      <div
+        {...dragControls?.handleProps}
+        title={dragControls ? "Tarik buat mindahin panel" : undefined}
+        className={`flex items-center justify-between gap-2 ${
+          dragControls ? "cursor-grab touch-none select-none active:cursor-grabbing" : ""
+        }`}
+      >
+        <h2 className="flex items-center gap-2 font-display text-base font-bold text-paper-bright">
+          {dragControls && (
+            <span aria-hidden="true" className="text-paper-dim">
+              ⠿
+            </span>
+          )}
           Pratinjau real-time
         </h2>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-wide text-scan">
+          <span className="rounded-full bg-scan/15 px-2.5 py-0.5 text-[11px] font-medium text-scan-glow">
             halaman {pageNumber}
           </span>
+          {dragControls?.isFloating && (
+            <button
+              onClick={dragControls.dock}
+              className="rounded-lg border border-scan/50 px-2 py-0.5 text-[11px] text-scan-glow hover:bg-scan/10"
+            >
+              Pasang lagi ⤒
+            </button>
+          )}
           {baseCanvas && (
             <button
               onClick={() => setCollapsed((c) => !c)}
-              className="rounded-md border border-ink-line px-2 py-0.5 text-[11px] text-paper-dim hover:border-scan/60 hover:text-paper-bright"
+              className="rounded-lg bg-white/5 px-2.5 py-0.5 text-[11px] text-paper-dim transition-colors hover:bg-white/10 hover:text-paper-bright"
             >
               {collapsed ? "Gedein ⌄" : "Kecilin ⌃"}
             </button>
@@ -66,7 +93,7 @@ export default function LivePreview({
       </div>
 
       <div
-        className={`flex min-w-0 items-center justify-center overflow-hidden rounded-lg bg-ink transition-all duration-200 ${
+        className={`flex min-w-0 items-center justify-center overflow-hidden rounded-2xl bg-ink ring-1 ring-white/5 transition-all duration-200 ${
           collapsed ? "h-16" : "min-h-[220px]"
         }`}
       >

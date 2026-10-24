@@ -39,10 +39,10 @@ export default function UploadZone({ onFilesAdded }: UploadZoneProps) {
         setIsDragOver(false);
         handleFiles(e.dataTransfer.files);
       }}
-      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed px-6 py-12 text-center transition-all duration-200 ${
         isDragOver
-          ? "border-scan bg-scan/10"
-          : "border-ink-line bg-ink-panel/60 hover:border-scan/60 hover:bg-ink-panel"
+          ? "scale-[1.01] border-scan bg-scan/15 shadow-glow"
+          : "border-ink-line bg-ink-panel/50 hover:border-scan/60 hover:bg-ink-panel/80"
       }`}
     >
       <input
@@ -53,10 +53,13 @@ export default function UploadZone({ onFilesAdded }: UploadZoneProps) {
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <span className="font-mono text-xs uppercase tracking-wide text-scan">
+      <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-scan/15 text-2xl">
+        📄
+      </span>
+      <span className="rounded-full bg-scan/15 px-2.5 py-0.5 text-[11px] font-semibold text-scan-glow">
         PDF saja
       </span>
-      <p className="font-display text-lg text-paper-bright">
+      <p className="font-display text-lg font-semibold text-paper-bright">
         Seret PDF-nya ke sini, atau klik buat pilih file
       </p>
       <p className="text-sm text-paper-dim">

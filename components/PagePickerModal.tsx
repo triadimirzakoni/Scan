@@ -72,10 +72,10 @@ function PageThumb({
       onClick={() => onToggle(pageNumber)}
       aria-pressed={selected}
       aria-label={`Halaman ${pageNumber}`}
-      className={`group relative flex min-w-0 flex-col overflow-hidden rounded-lg border-2 bg-ink-panel text-left transition-colors ${
+      className={`group relative flex min-w-0 flex-col overflow-hidden rounded-xl border-2 bg-ink-panel text-left transition-all ${
         selected
-          ? "border-scan"
-          : "border-ink-line hover:border-scan/50"
+          ? "border-scan shadow-glow"
+          : "border-white/10 hover:border-scan/50"
       }`}
     >
       <div className="relative w-full bg-paper">
@@ -91,8 +91,8 @@ function PageThumb({
         )}
       </div>
       <span
-        className={`px-2 py-1 text-center font-mono text-xs ${
-          selected ? "bg-scan/15 text-scan" : "text-paper-dim"
+        className={`tabular px-2 py-1 text-center text-xs font-medium ${
+          selected ? "bg-scan/15 text-scan-glow" : "text-paper-dim"
         }`}
       >
         {pageNumber}
@@ -193,19 +193,19 @@ export default function PagePickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-md"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Pilih halaman ${file.name}`}
     >
       <div
-        className="flex h-[90vh] w-full max-w-3xl min-w-0 flex-col overflow-hidden rounded-xl border border-ink-line bg-ink-soft shadow-2xl"
+        className="flex h-[90vh] w-full max-w-3xl min-w-0 flex-col overflow-hidden rounded-3xl border border-white/10 bg-ink-soft shadow-2xl shadow-black/60"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-ink-line px-4 py-3">
+        <div className="flex items-start justify-between gap-3 border-b border-white/5 px-5 py-3.5">
           <div className="min-w-0">
-            <p className="font-display text-base text-paper-bright">
+            <p className="font-display text-base font-bold text-paper-bright">
               Pilih halaman yang mau discan
             </p>
             <p className="truncate text-xs text-paper-dim">
@@ -217,13 +217,13 @@ export default function PagePickerModal({
           <button
             onClick={onClose}
             aria-label="Tutup"
-            className="shrink-0 rounded-md px-2 py-1.5 text-xs text-paper-dim hover:bg-ink-line hover:text-paper-bright"
+            className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-paper-dim hover:bg-white/10 hover:text-paper-bright"
           >
             ✕
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-b border-ink-line px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/5 px-5 py-3.5">
           <input
             type="text"
             value={rangeText}
@@ -234,26 +234,26 @@ export default function PagePickerModal({
             placeholder="Ketik halaman, contoh: 1-3, 5, 8-10"
             disabled={totalPages === 0}
             aria-label="Rentang halaman"
-            className="min-w-[180px] flex-1 rounded-md border border-ink-line bg-ink px-3 py-1.5 font-mono text-xs text-paper-bright placeholder:text-paper-dim/60 focus:border-scan focus:outline-none disabled:opacity-40"
+            className="min-w-[180px] flex-1 rounded-lg border border-white/10 bg-ink px-3 py-2 text-xs text-paper-bright placeholder:text-paper-dim/60 focus:border-scan focus:outline-none disabled:opacity-40"
           />
           <button
             onClick={applyRange}
             disabled={totalPages === 0}
-            className="rounded-md border border-scan px-3 py-1.5 text-xs font-medium text-scan hover:bg-scan/10 disabled:opacity-40"
+            className="rounded-lg border border-scan/60 px-3 py-1.5 text-xs font-semibold text-scan-glow hover:bg-scan/10 disabled:opacity-40"
           >
             Terapkan
           </button>
           <button
             onClick={selectAll}
             disabled={totalPages === 0}
-            className="rounded-md bg-ink-line px-3 py-1.5 text-xs text-paper-dim hover:text-paper-bright disabled:opacity-40"
+            className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-paper-dim hover:bg-white/10 hover:text-paper-bright disabled:opacity-40"
           >
             Pilih semua
           </button>
           <button
             onClick={clearAll}
             disabled={totalPages === 0}
-            className="rounded-md bg-ink-line px-3 py-1.5 text-xs text-paper-dim hover:text-paper-bright disabled:opacity-40"
+            className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-paper-dim hover:bg-white/10 hover:text-paper-bright disabled:opacity-40"
           >
             Kosongkan
           </button>
@@ -285,8 +285,8 @@ export default function PagePickerModal({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-line px-4 py-3">
-          <p className="font-mono text-xs text-paper-dim">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/5 px-5 py-3.5">
+          <p className="tabular text-xs text-paper-dim">
             {selected.size}
             {totalPages > 0 ? `/${totalPages}` : ""} halaman dipilih
           </p>
@@ -294,14 +294,14 @@ export default function PagePickerModal({
             <button
               onClick={confirmAll}
               disabled={totalPages === 0}
-              className="rounded-lg border border-scan px-4 py-2 text-sm font-medium text-scan hover:bg-scan/10 disabled:opacity-40"
+              className="rounded-xl border border-scan/60 px-4 py-2 text-sm font-semibold text-scan-glow hover:bg-scan/10 disabled:opacity-40"
             >
               Scan semua halaman
             </button>
             <button
               onClick={confirmSelected}
               disabled={selected.size === 0}
-              className="rounded-lg bg-scan px-4 py-2 text-sm font-medium text-ink hover:bg-scan/90 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-xl bg-gradient-to-b from-scan-glow to-scan px-5 py-2 text-sm font-semibold text-ink shadow-glow transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
             >
               {selected.size === 0
                 ? "Pilih halaman dulu"
